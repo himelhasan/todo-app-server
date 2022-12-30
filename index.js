@@ -29,7 +29,6 @@ async function run() {
     // tasks get
     app.get("/allTasks", async (req, res) => {
       const query = {};
-      const sort = { postedDate: 1 };
       const cursor = todoList.find(query).sort(sort);
       const result = await cursor.toArray();
       res.send(result);
@@ -46,7 +45,6 @@ async function run() {
 
     app.get("/completed", async (req, res) => {
       const query = { completed: true };
-      const sort = { postedDate: 1 };
       const cursor = todoList.find(query).sort(sort);
       const result = await cursor.toArray();
       res.send(result);
@@ -79,7 +77,6 @@ async function run() {
 
     app.get("/category/:id", async (req, res) => {
       const categoryId = req.params.id;
-
       const queryTwo = { _id: ObjectId(categoryId) };
       const cursorTwo = ourCategories.find(queryTwo);
       const resultTwo = await cursorTwo.toArray();
