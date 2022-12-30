@@ -52,6 +52,19 @@ async function run() {
       res.send(result);
     });
 
+    //according to email
+    app.get("/tasks", async (req, res) => {
+      let query = {};
+      if (req.query.email) {
+        query = {
+          userEmail: req.query.email,
+        };
+      }
+      const cursor = todoList.find(query);
+      const notes = await cursor.toArray();
+      res.send(notes);
+    });
+
     // notes collection
     // create new notes
     app.post("/notes", async (req, res) => {
@@ -73,7 +86,7 @@ async function run() {
       res.send(result);
     });
 
-    // notess query according to email
+    // notes query according to email
     app.get("/mynotes", async (req, res) => {
       let query = {};
       if (req.query.email) {
@@ -84,15 +97,14 @@ async function run() {
       const cursor = todoNotes.find(query);
       const notes = await cursor.toArray();
       res.send(notes);
+    });
+    // delete notes
 
-      // delete notes
-
-      app.delete("/notes/:id", async (req, res) => {
-        const id = req.params.id;
-        const query = { _id: ObjectId(id) };
-        const result = await todoNotes.deleteOne(query);
-        res.send(result);
-      });
+    app.delete("/notes/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: ObjectId(id) };
+      const result = await todoNotes.deleteOne(query);
+      res.send(result);
     });
   } finally {
   }
