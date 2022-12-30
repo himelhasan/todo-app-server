@@ -151,5 +151,8 @@ run().catch(console.dir);
 app.get("/", (req, res) => {
   res.send("todo server is listening on port " + port);
 });
+app.get("/test", (req, res) => {
+  res.send("todo server is listening on port " + port);
+});
 
 app.listen(port, () => console.log("server is listening on port " + port));
