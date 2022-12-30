@@ -1,154 +1,109 @@
 const express = require("express");
 const cors = require("cors");
+const app = express();
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const port = process.env.PORT || 5000;
 
-const app = express();
 app.use(cors());
 app.use(express.json());
 
-const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const uri =
-  "mongodb+srv://todoAdmin:8nnqJlLPVme83qHJ@cluster0.verqpx7.mongodb.net/?retryWrites=true&w=majority";
+  "mongodb+srv://dbuserfortodo:Kn3fs1Asvs77HcCA@cluster0.verqpx7.mongodb.net/?retryWrites=true&w=majority";
+
 const client = new MongoClient(uri, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
   serverApi: ServerApiVersion.v1,
 });
-client.connect((err) => {
-  const collection = client.db("TODOAPP").collection("todolist");
-  // perform actions on the collection object
-  console.log("database connected");
-  client.close();
-});
 
 async function run() {
   try {
     const todoList = client.db("TODOAPP").collection("todolist");
-    const todoComments = client.db("TODOAPP").collection("todoComments");
+    const todoNotes = client.db("TODOAPP").collection("todoComments");
 
-    // tasks get
-    app.get("/allTasks", async (req, res) => {
+    // all tasks
+    app.get("/tasks", async (req, res) => {
       const query = {};
-      const cursor = todoList.find(query).sort(sort);
-      const result = await cursor.toArray();
+      const cursor = todoList.find(query);
+      const tasks = await cursor.toArray();
+      res.send(tasks);
+    });
+
+    // tasks api to create new task
+    app.post("/tasks", async (req, res) => {
+      const task = req.body;
+      const result = await todoList.insertOne(task);
       res.send(result);
     });
 
-    // tasks post
-    app.post("/allTasks", async (req, res) => {
-      const data = req.body;
-      const result = await todoList.insertOne(data);
-      res.send(result);
-    });
-
-    // completed tasks
-
-    app.get("/completed", async (req, res) => {
-      const query = { completed: true };
-      const cursor = todoList.find(query).sort(sort);
-      const result = await cursor.toArray();
-      res.send(result);
+    // tasks api to get id basis tasks
+    app.get("/tasks/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: ObjectId(id) };
+      const task = await todoList.findOne(query);
+      res.send(task);
     });
 
     // delete task
-    app.delete("/allTasks/:id", async (req, res) => {
+    app.delete("/tasks/:id", async (req, res) => {
       const id = req.params.id;
       const query = { _id: ObjectId(id) };
       const result = await todoList.deleteOne(query);
       res.send(result);
     });
 
-    // category
-    app.get("/category", async (req, res) => {
-      const query = {};
-      const cursor = ourCategories.find(query);
-      const result = await cursor.limit(6).toArray();
-      res.send(result);
-    });
-    // create category
-
-    app.post("/category", async (req, res) => {
-      const body = req.body;
-      const result = await ourCategories.insertOne(body);
+    // notes collection
+    // create new notes
+    app.post("/notes", async (req, res) => {
+      const notes = req.body;
+      const result = await todoNotes.insertOne(notes);
       res.send(result);
     });
 
-    //  category wise data
-
-    app.get("/category/:id", async (req, res) => {
-      const categoryId = req.params.id;
-      const queryTwo = { _id: ObjectId(categoryId) };
-      const cursorTwo = ourCategories.find(queryTwo);
-      const resultTwo = await cursorTwo.toArray();
-
-      const sort = { postedDate: 1 };
-      // const options = { category_id: categoryId };
-      const query = { category_id: categoryId };
-      const cursor = todoList.find(query).sort(sort);
-      const result = await cursor.toArray();
-      const finalResult = [resultTwo, result];
-      res.send(finalResult);
-    });
-
-    // email based booking
-
-    app.get("/booking", async (req, res) => {
-      const email = req.query.email;
-      const query = { bookingPersonEmail: email };
-      const bookings = await meetingBooking.find(query).toArray();
-      res.send(bookings);
-    });
-
-    //////////////////// comments //////////////////////
-    // create new comment
-    app.post("/reviews", async (req, res) => {
-      const review = req.body;
-      const result = await todoComments.insertOne(review);
-      res.send(result);
-    });
-    // get new comment
-    app.get("/reviews", async (req, res) => {
+    // get notes
+    app.get("/notes", async (req, res) => {
       let query = {};
-      if (req.query.serviceId) {
+      if (req.query.taskId) {
         query = {
-          serviceId: req.query.serviceId,
+          taskId: req.query.taskId,
         };
       }
-      const cursor = todoComments.find(query);
+      const cursor = todoNotes.find(query);
       const result = await cursor.toArray();
       res.send(result);
     });
 
-    // tasks according to email
-    app.get("/myReviews", async (req, res) => {
+    // notess query according to email
+    app.get("/mynotes", async (req, res) => {
       let query = {};
       if (req.query.email) {
         query = {
           userEmail: req.query.email,
         };
       }
-      const cursor = todoComments.find(query);
-      const reviews = await cursor.toArray();
-      res.send(reviews);
+      const cursor = todoNotes.find(query);
+      const notes = await cursor.toArray();
+      res.send(notes);
 
-      // delete comment
+      // delete notes
 
-      app.delete("/reviews/:id", async (req, res) => {
+      app.delete("/notes/:id", async (req, res) => {
         const id = req.params.id;
         const query = { _id: ObjectId(id) };
-        const result = await todoComments.deleteOne(query);
+        const result = await todoNotes.deleteOne(query);
         res.send(result);
       });
     });
-  } catch {}
+  } finally {
+  }
 }
-run().catch(console.dir);
+
+run().catch((err) => console.log(err));
 
 app.get("/", (req, res) => {
-  res.send("todo server is listening on port " + port);
-});
-app.get("/test", (req, res) => {
-  res.send("todo server is listening on port " + port);
+  res.send("Photographer car server is running");
 });
 
-app.listen(port, () => console.log("server is listening on port " + port));
+app.listen(port, () => {
+  console.log("server is running");
+});
