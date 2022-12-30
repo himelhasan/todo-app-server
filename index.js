@@ -53,17 +53,49 @@ async function run() {
     });
 
     //according to email
-    app.get("/tasks", async (req, res) => {
+
+    //
+    //Get all Task By Email Id
+
+    //Get all Task By Email Id
+    app.get("/addTask", async (req, res) => {
       let query = {};
-      if (req.query.email) {
-        query = {
-          userEmail: req.query.email,
-        };
+
+      try {
+        if (req.query.email) {
+          query = {
+            email: req.query.email,
+          };
+        }
+
+        const cursor = todoList.find(query);
+        const allTask = await cursor.toArray();
+        res.send({
+          success: true,
+          message: "Successfully read all Task",
+          data: allTask,
+        });
+      } catch (error) {
+        console.log(error.message);
+        res.send({
+          success: false,
+          error: error.message,
+        });
       }
-      const cursor = todoList.find(query);
-      const notes = await cursor.toArray();
-      res.send(notes);
     });
+    //
+
+    // app.get("/tasks", async (req, res) => {
+    //   let query = {};
+    //   if (req.query.email) {
+    //     query = {
+    //       userEmail: req.query.email,
+    //     };
+    //   }
+    //   const cursor = todoList.find(query);
+    //   const notes = await cursor.toArray();
+    //   res.send(notes);
+    // });
 
     // notes collection
     // create new notes
